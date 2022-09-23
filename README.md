@@ -7,5 +7,6 @@ FEATURES:
 - Running
 - Crouching
 - Camera head bob animations
+- Camera sway
 - Dynamic camera FOV
 - Support for moving platforms
