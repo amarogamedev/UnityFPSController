@@ -8,15 +8,16 @@ public class Player : MonoBehaviour
     public float walkSpeed; //speed that the player will walk
     public float runSpeed; //speed that the player will run
     public float sprintVelocity; //time that the player takes to transition between running and walking
-    [Range(0, 0.99f)] public float crouchSpeedMultiplier; //multiplier of the speed when crouching
     float speed; //current player speed
     [Range(0, 20)] public float movementSmoothness; //smoothness of starting and stopping walking
     float moveX, moveY; //player input (WASD or keys)
     public float crouchingHeight; //height that the player will have when crouching
     float standingHeight; //height that the player will have when standing
+    [Range(0, 0.99f)] public float crouchSpeedMultiplier; //multiplier of the speed when crouching
     Vector3 moveDirection; //the direction which the player is moving
     Vector3 finalMoveDirection; //smoothed version of the moveDirection
 
+    [Header("-------------------------------------------------------------------------------------")]
     [Header("Jumping Settings")]
     public float jumpForce; //force of the jump
     public float gravity; //force of gravity (only acts on the player)
@@ -26,17 +27,18 @@ public class Player : MonoBehaviour
     public Transform foot; //position of the player's foot
     float timeSinceLastJump; //time since the player jumped
 
+    [Header("-------------------------------------------------------------------------------------")]
     [Header("Looking Settings")]
     [Range(100, 500)] public float mouseSensitivity; //sensitivity of camera movement
     public Vector2 minMaxFovPunch; //minimum and maximum amount of field of view
-    float fov; //current camera field of view
     public Vector2 minMaxClampXRotation; //minimum and maximum values of the X rotation (up and down)
     float xAxisRotation; //current values of the X rotation (up and down)
-    public Transform lookRotationPoint; //position of the eyes (camera)
+    public Transform pivot; //position of the eyes (camera)
 
     [HideInInspector]public bool paused;
     CharacterController characterController;
     Camera cam;
+    Animator animator;
 
     #endregion
 
@@ -57,6 +59,7 @@ public class Player : MonoBehaviour
 
         LookAround();
         MoveAround();
+        AnimateHeadBob();
 
         //stores the time since the last jump
         timeSinceLastJump += Time.deltaTime;
@@ -69,6 +72,7 @@ public class Player : MonoBehaviour
         //assigns the components needed to the variables
         characterController = GetComponent<CharacterController>();
         cam = GetComponentInChildren<Camera>();
+        animator = GetComponentInChildren<Animator>();
     }
 
     public void LockCursor()
@@ -90,7 +94,7 @@ public class Player : MonoBehaviour
 
     void SetDefaultFOV()
     {
-        fov = minMaxFovPunch.x;
+        cam.fieldOfView = minMaxFovPunch.x;
     }
 
     #endregion
@@ -109,7 +113,7 @@ public class Player : MonoBehaviour
         //clamp the input and rotate the camera based on the mouse Y input
         xAxisRotation -= mouseY;
         xAxisRotation = Mathf.Clamp(xAxisRotation, minMaxClampXRotation.x, minMaxClampXRotation.y);
-        lookRotationPoint.transform.localRotation = Quaternion.Euler(xAxisRotation, 0, 0);
+        pivot.transform.localRotation = Quaternion.Euler(xAxisRotation, 0, 0);
     }
 
     void MoveAround()
@@ -153,7 +157,7 @@ public class Player : MonoBehaviour
 
         //recenters the character controller and camera (changes when crouching or standing up)
         characterController.center = new Vector3(0, 0.5f + characterController.height / 4, 0);
-        lookRotationPoint.localPosition = new Vector3(0, characterController.height * 0.875f, 0);
+        pivot.localPosition = new Vector3(0, characterController.height * 0.875f, 0);
 
         //creates the direction vector, normalizes it and smoothes it
         moveDirection = transform.right * moveX + transform.forward * moveY;
@@ -172,6 +176,25 @@ public class Player : MonoBehaviour
     void CalculateFov(float fov)
     {
         cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, fov, sprintVelocity * Time.deltaTime);
+    }
+
+    void AnimateHeadBob()
+    {
+        //checks if the player is not moving, moving slowly or flying
+        if(!grounded() || characterController.velocity.magnitude < walkSpeed/2)
+        {
+            animator.SetInteger("speed", 0);
+            return;
+        }
+
+        if(speed == runSpeed)
+        {
+            animator.SetInteger("speed", 2);
+        }
+        else
+        {
+            animator.SetInteger("speed", 1);
+        }
     }
 
     void SetCharacterControllerHeight(float height)

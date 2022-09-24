@@ -123,6 +123,32 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &109552266 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1807731269066054412, guid: 7a7f9cc028e4b1f47ab3b3b57fd5d278,
+    type: 3}
+  m_PrefabInstance: {fileID: 1382933809}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &109552268
+Animator:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 109552266}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: d1db7b8d0c646db439147af41475fb29, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!1 &282301576
 GameObject:
   m_ObjectHideFlags: 0
@@ -970,25 +996,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 2233259212523929815, guid: 7a7f9cc028e4b1f47ab3b3b57fd5d278,
-        type: 3}
-      propertyPath: crouchingCooldown
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2233259212523929815, guid: 7a7f9cc028e4b1f47ab3b3b57fd5d278,
-        type: 3}
-      propertyPath: crouchRecoverDelay
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 2233259212523929817, guid: 7a7f9cc028e4b1f47ab3b3b57fd5d278,
         type: 3}
       propertyPath: m_Name
       value: Player
-      objectReference: {fileID: 0}
-    - target: {fileID: 8806014379465966165, guid: 7a7f9cc028e4b1f47ab3b3b57fd5d278,
-        type: 3}
-      propertyPath: m_Antialiasing
-      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7a7f9cc028e4b1f47ab3b3b57fd5d278, type: 3}
