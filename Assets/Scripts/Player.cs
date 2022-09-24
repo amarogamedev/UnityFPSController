@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Player : MonoBehaviour
 {
@@ -9,10 +7,11 @@ public class Player : MonoBehaviour
     [Header("Movement Settings")]
     public float walkSpeed; //speed that the player will walk
     public float runSpeed; //speed that the player will run
-    [Range(0, 50)] public float movementSmoothness; //smoothness of starting and stopping walking
+    public float sprintVelocity; //time that the player takes to transition between running and walking
+    [Range(0, 0.99f)] public float crouchSpeedMultiplier; //multiplier of the speed when crouching
+    float speed; //current player speed
+    [Range(0, 20)] public float movementSmoothness; //smoothness of starting and stopping walking
     float moveX, moveY; //player input (WASD or keys)
-    bool grounded; //returns if the the player is currently grounded
-    bool crouching; //returns if the player is currently crouching
     public float crouchingHeight; //height that the player will have when crouching
     float standingHeight; //height that the player will have when standing
     Vector3 moveDirection; //the direction which the player is moving
@@ -28,12 +27,12 @@ public class Player : MonoBehaviour
     float timeSinceLastJump; //time since the player jumped
 
     [Header("Looking Settings")]
-    [Range(100,500)] public float mouseSensitivity; //sensitivity of camera movement
+    [Range(100, 500)] public float mouseSensitivity; //sensitivity of camera movement
     public Vector2 minMaxFovPunch; //minimum and maximum amount of field of view
+    float fov; //current camera field of view
     public Vector2 minMaxClampXRotation; //minimum and maximum values of the X rotation (up and down)
     float xAxisRotation; //current values of the X rotation (up and down)
     public Transform lookRotationPoint; //position of the eyes (camera)
-    public Animator headBobAnimator; //animator responsible for the camera bob movement
 
     [HideInInspector]public bool paused;
     CharacterController characterController;
@@ -46,6 +45,7 @@ public class Player : MonoBehaviour
         GetComponents();
         LockCursor();
         SetStandingHeight();
+        SetDefaultFOV();
     }
 
     void Update()
@@ -57,6 +57,9 @@ public class Player : MonoBehaviour
 
         LookAround();
         MoveAround();
+
+        //stores the time since the last jump
+        timeSinceLastJump += Time.deltaTime;
     }
 
     #region Starting methods (Only runs once at the start)
@@ -85,6 +88,11 @@ public class Player : MonoBehaviour
         standingHeight = characterController.height;
     }
 
+    void SetDefaultFOV()
+    {
+        fov = minMaxFovPunch.x;
+    }
+
     #endregion
 
     #region Update methods (Runs every frame)
@@ -110,48 +118,40 @@ public class Player : MonoBehaviour
         moveX = Input.GetAxisRaw("Horizontal");
         moveY = Input.GetAxisRaw("Vertical");
 
-        //checks if the player is trying to crouch or can't get up
-        crouching = Input.GetKey(KeyCode.LeftControl) && grounded || hittingHead();
-
-        float speed = walkSpeed;
-        float fov = minMaxFovPunch.x;
-
-        //check if the player is running
-        if (Input.GetKey(KeyCode.LeftShift))
+        //check if the player is crouching
+        if (crouching())
         {
-            //sets variables to running state
-            if(!crouching && moveY > 0)
-            {
-                speed = runSpeed;
-                fov = minMaxFovPunch.y;
-            }
-        }
+            CalculateSpeed(-sprintVelocity);
+            CalculateFov(minMaxFovPunch.x);
 
-        cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, fov, movementSmoothness * Time.deltaTime);
-
-        //checks if the player is crouching
-        if(crouching)
-        {
             //reduces speed and the size if the player is crouching
-            speed /= 2;
-            characterController.height = Mathf.Lerp(characterController.height, crouchingHeight, movementSmoothness * Time.deltaTime);
+            speed *= crouchSpeedMultiplier;
+            SetCharacterControllerHeight(crouchingHeight);
         }
         else
         {
-            characterController.height = Mathf.Lerp(characterController.height, standingHeight, movementSmoothness * Time.deltaTime);
+            //checks if the player is trying to run and sets variables to running state
+            if (Input.GetKey(KeyCode.LeftShift) && moveY > 0)
+            {
+                CalculateSpeed(sprintVelocity);
+                CalculateFov(minMaxFovPunch.y);
+            }
+            else
+            {
+                CalculateSpeed(-sprintVelocity);
+                CalculateFov(minMaxFovPunch.x);
+            }
+
+            SetCharacterControllerHeight(standingHeight);
         }
 
-        //feed the current speed and inputs to the head bob function
-        if(paused)
+        //checks if the player can jump
+        if (Input.GetKeyDown(KeyCode.Space) && grounded())
         {
-            AnimateHeadBob(0, new Vector2(moveX, moveY));
-        }
-        else
-        {
-            AnimateHeadBob(speed, new Vector2(moveX, moveY));
+            Jump();
         }
 
-        //recenters the character controller and camera
+        //recenters the character controller and camera (changes when crouching or standing up)
         characterController.center = new Vector3(0, 0.5f + characterController.height / 4, 0);
         lookRotationPoint.localPosition = new Vector3(0, characterController.height * 0.875f, 0);
 
@@ -164,41 +164,28 @@ public class Player : MonoBehaviour
         characterController.Move(finalMoveDirection * speed * Time.deltaTime);
     }
 
-    void AnimateHeadBob(float speed, Vector2 inputs)
+    void CalculateSpeed(float sprintVelocity)
     {
-        //checks if the player is grounded and pressing a key
-        int animationSpeed;
-        if (grounded && inputs.magnitude != 0)
-        {
-            //checks if the player is running or walking
-            if (speed == runSpeed)
-            {
-                animationSpeed = 2;
-            }
-            else
-            {
-                animationSpeed = 1;
-            }
-        }
-        else
-        {
-            animationSpeed = 0;
-        }
+        speed = Mathf.Clamp(speed += sprintVelocity * Time.deltaTime, walkSpeed, runSpeed);
+    }
 
-        //sends animation speed info to the animator
-        headBobAnimator.SetInteger("speed", animationSpeed);
+    void CalculateFov(float fov)
+    {
+        cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, fov, sprintVelocity * Time.deltaTime);
+    }
+
+    void SetCharacterControllerHeight(float height)
+    {
+        characterController.height = Mathf.Lerp(characterController.height, height, movementSmoothness * Time.deltaTime);
     }
 
     void ApplyGravity()
     {
-        //stores the time since the last jump
-        timeSinceLastJump += Time.deltaTime;
-
         //checks if the player is grounded
-        if(grounded)
+        if(grounded() && timeSinceLastJump > 0.5f)
         {
             //resets the gravity and reset back the slope limit
-            gravityDirection.y = -3.5f;
+            gravityDirection.y = -9.8f;
             characterController.slopeLimit = 45;
         }
         else
@@ -208,19 +195,6 @@ public class Player : MonoBehaviour
             characterController.slopeLimit = 90;
         }
 
-        //checks if the player hasn't jumped recently to prevent getting stuck to the ground
-        if (timeSinceLastJump > 0.3f)
-        {
-            //updates grounded variable by testing if the player is colliding with something of the ground layer
-            grounded = Physics.CheckSphere(foot.transform.position, groundCheckRadius, groundMask);
-        }
-
-        //checks if the player can jump
-        if (Input.GetKeyDown(KeyCode.Space) && grounded)
-        {
-            Jump();
-        }
-
         //moves the player down based on the gravity
         characterController.Move(gravityDirection * Time.deltaTime);
     }
@@ -228,22 +202,42 @@ public class Player : MonoBehaviour
     void Jump()
     {
         //applies upwards force
-        grounded = false;
         gravityDirection.y = Mathf.Sqrt(jumpForce * -2 * gravity);
         timeSinceLastJump = 0;
+    }
+
+    bool grounded()
+    {
+        return Physics.CheckSphere(foot.transform.position, groundCheckRadius, groundMask);
+    }
+
+    bool crouching()
+    {
+        if(Input.GetKey(KeyCode.LeftControl) && grounded())
+        {
+            return true;
+        }
+        else if(hittingHead())
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     bool hittingHead()
     {
         float x = transform.position.x;
-        float y = transform.position.y + characterController.height;
+        float y = transform.position.y + characterController.stepOffset;
         float z = transform.position.z;
 
         //do multiple raycasts to check if the player is hitting his head using the radius of the character controller collider
-        if ((Physics.Raycast(new Vector3(x + characterController.radius, y, z), Vector3.up, 1) && crouching)
-            || (Physics.Raycast(new Vector3(x - characterController.radius, y, z), Vector3.up, 1) && crouching)
-            || (Physics.Raycast(new Vector3(x, y, z + characterController.radius), Vector3.up, 1) && crouching)
-            || (Physics.Raycast(new Vector3(x, y, z - characterController.radius), Vector3.up, 1) && crouching))
+        if ((Physics.Raycast(new Vector3(x + characterController.radius, y, z), Vector3.up, standingHeight - characterController.stepOffset))
+            || (Physics.Raycast(new Vector3(x - characterController.radius, y, z), Vector3.up, standingHeight - characterController.stepOffset))
+            || (Physics.Raycast(new Vector3(x, y, z + characterController.radius), Vector3.up, standingHeight - characterController.stepOffset))
+            || (Physics.Raycast(new Vector3(x, y, z - characterController.radius), Vector3.up, standingHeight - characterController.stepOffset)))
         {
             return true;
         }

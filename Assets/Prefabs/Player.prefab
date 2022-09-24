@@ -89,7 +89,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2233259211273264818}
-  - component: {fileID: 2233259211273264817}
   - component: {fileID: 2233259211273264783}
   - component: {fileID: 2233259211273264816}
   - component: {fileID: 8806014379465966165}
@@ -116,21 +115,6 @@ Transform:
   m_Father: {fileID: 2233259211162559064}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2233259211273264817
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2233259211273264819}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a92f06420f903384387b50ca8deb623d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  amount: 0
-  maxAmount: 0
-  smooth: 0
 --- !u!20 &2233259211273264783
 Camera:
   m_ObjectHideFlags: 0
@@ -224,7 +208,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2233259212019138266}
-  - component: {fileID: 2233259212019138267}
   m_Layer: 2
   m_Name: CameraHolder
   m_TagString: Untagged
@@ -248,26 +231,6 @@ Transform:
   m_Father: {fileID: 2233259212523929814}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!95 &2233259212019138267
-Animator:
-  serializedVersion: 4
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2233259212019138268}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: f95c1ff784ff81742833a9b59e31202f, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!1 &2233259212285238064
 GameObject:
   m_ObjectHideFlags: 0
@@ -346,8 +309,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a77edb0d180072f4492ffe4c58e1e62e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  walkSpeed: 4
+  walkSpeed: 5
   runSpeed: 8
+  sprintVelocity: 8
+  crouchSpeedMultiplier: 0.25
   movementSmoothness: 7.5
   crouchingHeight: 1
   jumpForce: 1.5
@@ -358,10 +323,9 @@ MonoBehaviour:
     m_Bits: 1
   foot: {fileID: 2233259212285238031}
   mouseSensitivity: 150
-  minMaxFovPunch: {x: 65, y: 75}
+  minMaxFovPunch: {x: 75, y: 85}
   minMaxClampXRotation: {x: -90, y: 90}
   lookRotationPoint: {fileID: 2233259211162559064}
-  headBobAnimator: {fileID: 2233259212019138267}
   paused: 0
 --- !u!143 &2233259212523929816
 CharacterController:
@@ -377,7 +341,7 @@ CharacterController:
   m_Height: 2
   m_Radius: 0.4
   m_SlopeLimit: 45
-  m_StepOffset: 0.3
+  m_StepOffset: 0.2
   m_SkinWidth: 0.0001
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 1, z: 0}
