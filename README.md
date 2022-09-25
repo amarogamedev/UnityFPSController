@@ -1,7 +1,7 @@
 # UnityFPSController
 A very flexible first person character controller for Unity 🎮👤
 
-# FEATURES:
+# Features:
 - Smooth movement on all directions.
 - Jumping
 - Running
@@ -10,7 +10,7 @@ A very flexible first person character controller for Unity 🎮👤
 - Camera sway
 - Dynamic camera FOV
 
-# HOW TO USE
+# How to use
 - Clone this repository or download the files and copy the contents on the 'Assets' folder to your project
 - Place the 'Player' prefab located on Assets/Prefabs on your scene
 - Tweak the player parameters to fit your project
