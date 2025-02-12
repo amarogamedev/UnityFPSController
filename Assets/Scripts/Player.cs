@@ -104,8 +104,8 @@ public class Player : MonoBehaviour
     void LookAround()
     {
         //get input from the mouse, multiply by sensitivity and framerate
-        float mouseX = Input.GetAxisRaw("Mouse X") * mouseSensitivity * Time.smoothDeltaTime;
-        float mouseY = Input.GetAxisRaw("Mouse Y") * mouseSensitivity * Time.smoothDeltaTime;
+        float mouseX = Input.GetAxisRaw("Mouse X") * mouseSensitivity;
+        float mouseY = Input.GetAxisRaw("Mouse Y") * mouseSensitivity;
 
         //rotate the player body based on the mouse X input
         transform.Rotate(Vector3.up * mouseX);
